@@ -1,0 +1,353 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+type ScriptMode = "ai" | "custom";
+type Duration = "30s" | "1min" | "2min" | "3min";
+type Background =
+  | "midnight"
+  | "aurora"
+  | "ember"
+  | "forest"
+  | "slate"
+  | "void";
+
+const backgrounds: { id: Background; name: string; gradient: string }[] = [
+  {
+    id: "midnight",
+    name: "Midnight",
+    gradient: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+  },
+  {
+    id: "aurora",
+    name: "Aurora",
+    gradient: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+  },
+  {
+    id: "ember",
+    name: "Ember",
+    gradient: "linear-gradient(135deg, #1a0000, #3d0000, #7f0000)",
+  },
+  {
+    id: "forest",
+    name: "Forest",
+    gradient: "linear-gradient(135deg, #000000, #0f3443, #1a4a2e)",
+  },
+  {
+    id: "slate",
+    name: "Slate",
+    gradient: "linear-gradient(135deg, #1c1c2e, #2d2d44, #1a1a2e)",
+  },
+  {
+    id: "void",
+    name: "Void",
+    gradient: "linear-gradient(135deg, #000000, #0a0a0a, #111111)",
+  },
+];
+
+export default function GeneratePage() {
+  const [repoUrl, setRepoUrl] = useState("");
+  const [scriptMode, setScriptMode] = useState<ScriptMode>("ai");
+  const [customScript, setCustomScript] = useState("");
+  const [duration, setDuration] = useState<Duration>("1min");
+  const [selectedBackground, setSelectedBackground] =
+    useState<Background>("midnight");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!repoUrl.trim()) {
+      setError("Please enter a GitHub repo URL");
+      return;
+    }
+
+    setError("");
+    setIsLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+  };
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: "#09090b" }}>
+      {/* Header */}
+      <header
+        className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-8"
+        style={{ borderBottom: "1px solid #1e1e2e" }}
+      >
+        <span className="text-lg font-bold" style={{ color: "#fafafa" }}>
+          Demofy
+        </span>
+        <Link
+          href="/"
+          className="text-sm transition-colors hover:opacity-80"
+          style={{ color: "#71717a" }}
+        >
+          Back to home
+        </Link>
+      </header>
+
+      {/* Main Content */}
+      <main className="mx-auto max-w-[640px] px-8 py-12">
+        <h1
+          className="mb-2 text-2xl font-semibold"
+          style={{ color: "#fafafa" }}
+        >
+          Generate your demo
+        </h1>
+        <p className="mb-8 text-sm" style={{ color: "#71717a" }}>
+          Fill in the details below and we'll handle the rest.
+        </p>
+
+        {/* Form Card */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-6 p-8"
+          style={{
+            backgroundColor: "#111117",
+            border: "1px solid #1e1e2e",
+            borderRadius: "12px",
+          }}
+        >
+          {/* GitHub Repo Input */}
+          <div>
+            <label
+              className="mb-2 block text-[13px] font-medium"
+              style={{ color: "#71717a" }}
+            >
+              GitHub repository
+            </label>
+            <input
+              type="text"
+              value={repoUrl}
+              onChange={(e) => {
+                setRepoUrl(e.target.value);
+                if (error) setError("");
+              }}
+              placeholder="https://github.com/username/repo"
+              className="h-11 w-full px-4 text-sm outline-none transition-colors"
+              style={{
+                backgroundColor: "#09090b",
+                border: error ? "1px solid #ef4444" : "1px solid #1e1e2e",
+                borderRadius: "8px",
+                color: "#fafafa",
+              }}
+              onFocus={(e) => {
+                if (!error) {
+                  e.target.style.borderColor = "#4f46e5";
+                }
+              }}
+              onBlur={(e) => {
+                if (!error) {
+                  e.target.style.borderColor = "#1e1e2e";
+                }
+              }}
+            />
+            {error && (
+              <p className="mt-2 text-xs" style={{ color: "#ef4444" }}>
+                {error}
+              </p>
+            )}
+          </div>
+
+          {/* Script Mode */}
+          <div>
+            <label
+              className="mb-2 block text-[13px] font-medium"
+              style={{ color: "#71717a" }}
+            >
+              Script
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setScriptMode("ai")}
+                className="px-4 py-1.5 text-[13px] font-medium transition-colors"
+                style={{
+                  backgroundColor:
+                    scriptMode === "ai" ? "#4f46e5" : "transparent",
+                  border:
+                    scriptMode === "ai" ? "none" : "1px solid #1e1e2e",
+                  borderRadius: "9999px",
+                  color: scriptMode === "ai" ? "#ffffff" : "#71717a",
+                }}
+              >
+                AI writes it
+              </button>
+              <button
+                type="button"
+                onClick={() => setScriptMode("custom")}
+                className="px-4 py-1.5 text-[13px] font-medium transition-colors"
+                style={{
+                  backgroundColor:
+                    scriptMode === "custom" ? "#4f46e5" : "transparent",
+                  border:
+                    scriptMode === "custom" ? "none" : "1px solid #1e1e2e",
+                  borderRadius: "9999px",
+                  color: scriptMode === "custom" ? "#ffffff" : "#71717a",
+                }}
+              >
+                I'll write my own
+              </button>
+            </div>
+
+            {/* Custom Script Textarea */}
+            <div
+              className="overflow-hidden transition-all duration-300 ease-in-out"
+              style={{
+                maxHeight: scriptMode === "custom" ? "160px" : "0px",
+                opacity: scriptMode === "custom" ? 1 : 0,
+                marginTop: scriptMode === "custom" ? "12px" : "0px",
+              }}
+            >
+              <textarea
+                value={customScript}
+                onChange={(e) => setCustomScript(e.target.value)}
+                placeholder="Write your demo script here. Describe what your product does and its key features..."
+                className="h-[120px] w-full resize-none p-4 text-sm outline-none transition-colors"
+                style={{
+                  backgroundColor: "#09090b",
+                  border: "1px solid #1e1e2e",
+                  borderRadius: "8px",
+                  color: "#fafafa",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#4f46e5")}
+                onBlur={(e) => (e.target.style.borderColor = "#1e1e2e")}
+              />
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div>
+            <label
+              className="mb-2 block text-[13px] font-medium"
+              style={{ color: "#71717a" }}
+            >
+              Duration
+            </label>
+            <div className="flex gap-2">
+              {(["30s", "1min", "2min", "3min"] as Duration[]).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDuration(d)}
+                  className="px-4 py-1.5 text-[13px] font-medium transition-colors"
+                  style={{
+                    backgroundColor: duration === d ? "#4f46e5" : "transparent",
+                    border: duration === d ? "none" : "1px solid #1e1e2e",
+                    borderRadius: "9999px",
+                    color: duration === d ? "#ffffff" : "#71717a",
+                  }}
+                >
+                  {d === "1min"
+                    ? "1 min"
+                    : d === "2min"
+                      ? "2 min"
+                      : d === "3min"
+                        ? "3 min"
+                        : "30s"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Background Template */}
+          <div>
+            <label
+              className="mb-2 block text-[13px] font-medium"
+              style={{ color: "#71717a" }}
+            >
+              Background
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {backgrounds.map((bg) => (
+                <button
+                  key={bg.id}
+                  type="button"
+                  onClick={() => setSelectedBackground(bg.id)}
+                  className="flex flex-col items-center"
+                >
+                  <div
+                    className="w-full transition-all"
+                    style={{
+                      height: "72px",
+                      borderRadius: "8px",
+                      background: bg.gradient,
+                      border:
+                        selectedBackground === bg.id
+                          ? "2px solid #4f46e5"
+                          : bg.id === "void"
+                            ? "1px solid #27272a"
+                            : "1px solid #1e1e2e",
+                    }}
+                  />
+                  <span
+                    className="mt-1 text-xs"
+                    style={{ color: "#71717a" }}
+                  >
+                    {bg.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex h-12 w-full items-center justify-center gap-2 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+            style={{
+              backgroundColor: isLoading ? "#4338ca" : "#4f46e5",
+              borderRadius: "8px",
+              color: "#ffffff",
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = "#4338ca";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = "#4f46e5";
+              }
+            }}
+          >
+            {isLoading ? (
+              <>
+                <svg
+                  className="h-5 w-5 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Generating your video...
+              </>
+            ) : (
+              "Generate my demo video"
+            )}
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+}
