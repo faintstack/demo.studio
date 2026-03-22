@@ -24,7 +24,7 @@ const durationMap: Record<string, number> = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { repoUrl, scriptMode, customScript, duration, background } = body
+    const { repoUrl, scriptMode, customScript, duration, background, voice } = body
 
     if (!repoUrl) {
       return NextResponse.json(
@@ -163,7 +163,7 @@ Rules:
     const rawScript = completion.choices[0].message.content || ""
 
 
-    // Parse JSON from Gemini response
+    // Parse JSON from groq response
     const jsonMatch = rawScript.match(/\[[\s\S]*\]/)
     if (!jsonMatch) {
       return NextResponse.json(
@@ -174,16 +174,59 @@ Rules:
 
     const slides = JSON.parse(jsonMatch[0])
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        owner,
-        repo,
-        slides,
-        background,
-        duration: durationSeconds
+    // Step 5: ElevenLabs voiceover
+    const fullNarration = slides
+      .map((s: { narration: string }) => s.narration)
+      .join(" ")
+
+    const voiceId = voice === "female"
+      ? process.env.ELEVENLABS_VOICE_FEMALE!
+      : process.env.ELEVENLABS_VOICE_MALE!
+
+    const elevenResponse = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": process.env.ELEVENLABS_API_KEY!,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text: fullNarration,
+          model_id: "eleven_turbo_v2_5",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5
+          }
+        })
       }
-    })
+    )
+
+  if (!elevenResponse.ok) {
+    const err = await elevenResponse.text()
+    console.error("ElevenLabs error:", err)
+    return NextResponse.json(
+      { error: "Failed to generate voiceover" },
+      { status: 500 }
+    )
+  }
+
+  const audioBuffer = await elevenResponse.arrayBuffer()
+  const audioBase64 = Buffer.from(audioBuffer).toString("base64")
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      owner,
+      repo,
+      slides,
+      background,
+      duration: durationSeconds,
+      audioBase64
+    }
+  })
+
+    
 
   } catch (error) {
     console.error("Generate error:", error)

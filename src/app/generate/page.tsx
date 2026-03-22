@@ -5,6 +5,7 @@ import Link from "next/link";
 
 type ScriptMode = "ai" | "custom";
 type Duration = "30s" | "1min" | "2min" | "3min";
+type VoiceOption = "female" | "male";
 type Background =
   | "midnight"
   | "aurora"
@@ -51,6 +52,7 @@ export default function GeneratePage() {
   const [scriptMode, setScriptMode] = useState<ScriptMode>("ai");
   const [customScript, setCustomScript] = useState("");
   const [duration, setDuration] = useState<Duration>("1min");
+  const [voiceOption, setVoiceOption] = useState<VoiceOption>("female");
   const [selectedBackground, setSelectedBackground] =
     useState<Background>("midnight");
   const [isLoading, setIsLoading] = useState(false);
@@ -251,6 +253,34 @@ export default function GeneratePage() {
                       : d === "3min"
                         ? "3 min"
                         : "30s"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Voice */}
+          <div>
+            <label
+              className="mb-2 block text-[13px] font-medium"
+              style={{ color: "#71717a" }}
+            >
+              Voice
+            </label>
+            <div className="flex gap-2">
+              {(["female", "male"] as VoiceOption[]).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setVoiceOption(v)}
+                  className="px-4 py-1.5 text-[13px] font-medium capitalize transition-colors"
+                  style={{
+                    backgroundColor: voiceOption === v ? "#4f46e5" : "transparent",
+                    border: voiceOption === v ? "none" : "1px solid #1e1e2e",
+                    borderRadius: "9999px",
+                    color: voiceOption === v ? "#ffffff" : "#71717a",
+                  }}
+                >
+                  {v}
                 </button>
               ))}
             </div>
