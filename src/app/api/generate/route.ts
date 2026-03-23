@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
 
     const { owner, repo } = parsed
 
-    // Step 1: Get file tree
     const treeResponse = await octokit.rest.git.getTree({
       owner,
       repo,
@@ -65,7 +64,6 @@ export async function POST(req: NextRequest) {
       .map(f => f.path)
       .slice(0, 50)
 
-    // Step 2: Get README
     let readme = ""
     try {
       const readmeResponse = await octokit.rest.repos.getReadme({
@@ -80,7 +78,6 @@ export async function POST(req: NextRequest) {
       readme = "No README found"
     }
 
-    // Step 3: Get package.json
     let packageJson = ""
     try {
       const pkgResponse = await octokit.rest.repos.getContent({
@@ -98,7 +95,6 @@ export async function POST(req: NextRequest) {
       packageJson = "No package.json found"
     }
 
-    // Step 4: Generate script with Groq
     const durationSeconds = durationMap[duration] || 60
 
     let scriptPrompt = ""
@@ -122,15 +118,15 @@ Return ONLY a JSON array, no other text:
 ]
 
 Rules:
-- Split into 4-6 slides
+- Split into 4-5 slides
 - Total duration must equal ${durationSeconds} seconds
-- Keep the user's exact words as much as possible
+- Keep the user's exact words
+- Short sentences only — this is spoken word
 `
     } else {
       scriptPrompt = `
-You are a product demo video script writer.
-Analyze this GitHub repository and write a compelling 
-${durationSeconds}-second demo video script.
+You are writing a spoken demo video script for a real software product.
+Sound like a real person talking — not a marketer, not a salesperson.
 
 Repository: ${owner}/${repo}
 
@@ -147,20 +143,25 @@ Return ONLY a JSON array, no other text:
 [
   {
     "slide": 1,
-    "narration": "narration text for this slide",
+    "narration": "narration text",
     "duration": 8
   }
 ]
 
-Rules:
-- 4-6 slides total
-- Total duration must equal exactly ${durationSeconds} seconds
-- Tone: confident, clear, Product Hunt style
-- Focus on what the product DOES and who it helps
-- No technical jargon
-- No tool names like React or Node unless essential
-- First slide introduces the problem or product
-- Last slide is a call to action
+STRICT RULES:
+- ${durationSeconds} seconds total, exactly 4-5 slides
+- Short sentences. Spoken word only. No long paragraphs.
+- Be specific about what THIS product does based on the code
+- Sound natural when read aloud — like a friend explaining it
+- NEVER say: game-changer, stunning, drive sales, sign up,
+  visit our website, real results, seamlessly, leveraging,
+  cutting-edge, robust, revolutionize, empower
+- NEVER mention features that don't exist in the codebase
+- NEVER add calls to action for things that don't exist
+- Slide 1: one sentence stating the problem this solves
+- Slides 2-4: specifically how it works, step by step
+- Slide 5: one honest, simple closing line
+- Total narration should take exactly ${durationSeconds} seconds to read aloud
 `
     }
 
@@ -181,7 +182,6 @@ Rules:
 
     const slides = JSON.parse(jsonMatch[0])
 
-    // Step 5: ElevenLabs voiceover
     const fullNarration = slides
       .map((s: { narration: string }) => s.narration)
       .join(" ")
@@ -202,8 +202,10 @@ Rules:
           text: fullNarration,
           model_id: "eleven_turbo_v2_5",
           voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
+            stability: 0.75,
+            similarity_boost: 0.75,
+            style: 0.3,
+            use_speaker_boost: true
           }
         })
       }
@@ -220,7 +222,6 @@ Rules:
 
     const audioBuffer = await elevenResponse.arrayBuffer()
 
-    // Step 6: Assemble video with FFmpeg
     const timestamp = Date.now()
     const tempDir = os.tmpdir()
     const audioPath = path.join(tempDir, `audio-${timestamp}.mp3`)
@@ -245,12 +246,14 @@ Rules:
     }
 
     const bgColor = bgColors[background] || "0f0c29"
+    const durationPerSlide = Math.floor(durationSeconds / screenshotPaths.length)
 
     await new Promise<void>((resolve, reject) => {
       const cmd = ffmpeg()
 
       screenshotPaths.forEach((p) => {
         cmd.input(p)
+        cmd.inputOptions(["-loop 1", `-t ${durationPerSlide}`])
       })
 
       cmd.input(audioPath)
@@ -258,7 +261,7 @@ Rules:
       cmd
         .complexFilter([
           ...screenshotPaths.map((_, i) =>
-            `[${i}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=#${bgColor},setsar=1[v${i}]`
+            `[${i}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=#${bgColor},setsar=1,fps=30[v${i}]`
           ),
           `${screenshotPaths.map((_, i) => `[v${i}]`).join("")}concat=n=${screenshotPaths.length}:v=1:a=0[outv]`
         ])

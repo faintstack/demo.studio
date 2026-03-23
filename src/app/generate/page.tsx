@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type ScriptMode = "ai" | "custom";
 type Duration = "30s" | "1min" | "2min" | "3min";
@@ -47,19 +48,28 @@ const backgrounds: { id: Background; name: string; gradient: string }[] = [
   },
 ];
 
+const durationMap: Record<Duration, string> = {
+  "30s": "30s",
+  "1min": "1 min",
+  "2min": "2 min",
+  "3min": "3 min",
+};
+
 export default function GeneratePage() {
+  const router = useRouter();
   const [repoUrl, setRepoUrl] = useState("");
   const [scriptMode, setScriptMode] = useState<ScriptMode>("ai");
   const [customScript, setCustomScript] = useState("");
-  const [duration, setDuration] = useState<Duration>("1min");
+  const [duration, setDuration] = useState<Duration>("30s");
   const [voiceOption, setVoiceOption] = useState<VoiceOption>("female");
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [selectedBackground, setSelectedBackground] =
     useState<Background>("midnight");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!repoUrl.trim()) {
@@ -69,16 +79,57 @@ export default function GeneratePage() {
 
     setError("");
     setIsLoading(true);
+    setLoadingMessage("Analyzing your repo...");
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repoUrl,
+          scriptMode,
+          customScript,
+          duration: durationMap[duration],
+          background: selectedBackground,
+          voice: voiceOption,
+        }),
+      });
+
+      setLoadingMessage("Rendering your video...");
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLoadingMessage("Almost done...");
+
+        const videoDataUrl = `data:video/mp4;base64,${data.data.videoBase64}`;
+
+        try {
+          sessionStorage.setItem("demofy_video_url", videoDataUrl);
+          sessionStorage.setItem(
+            "demofy_slides",
+            JSON.stringify(data.data.slides)
+          );
+          sessionStorage.setItem("demofy_repo", data.data.repo);
+          sessionStorage.setItem("demofy_background", selectedBackground);
+        } catch (e) {
+          console.error("Storage error:", e);
+        }
+
+        router.push("/result");
+      } else {
+        setError(data.error || "Something went wrong");
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
       setIsLoading(false);
-    }, 3000);
+    }
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#09090b" }}>
-      {/* Header */}
       <header
         className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-8"
         style={{ borderBottom: "1px solid #1e1e2e" }}
@@ -95,7 +146,6 @@ export default function GeneratePage() {
         </Link>
       </header>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-[640px] px-8 py-12">
         <h1
           className="mb-2 text-2xl font-semibold"
@@ -107,7 +157,6 @@ export default function GeneratePage() {
           Fill in the details below and we'll handle the rest.
         </p>
 
-        {/* Form Card */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 p-8"
@@ -117,7 +166,6 @@ export default function GeneratePage() {
             borderRadius: "12px",
           }}
         >
-          {/* GitHub Repo Input */}
           <div>
             <label
               className="mb-2 block text-[13px] font-medium"
@@ -141,14 +189,10 @@ export default function GeneratePage() {
                 color: "#fafafa",
               }}
               onFocus={(e) => {
-                if (!error) {
-                  e.target.style.borderColor = "#4f46e5";
-                }
+                if (!error) e.target.style.borderColor = "#4f46e5";
               }}
               onBlur={(e) => {
-                if (!error) {
-                  e.target.style.borderColor = "#1e1e2e";
-                }
+                if (!error) e.target.style.borderColor = "#1e1e2e";
               }}
             />
             {error && (
@@ -158,7 +202,6 @@ export default function GeneratePage() {
             )}
           </div>
 
-          {/* Script Mode */}
           <div>
             <label
               className="mb-2 block text-[13px] font-medium"
@@ -167,39 +210,25 @@ export default function GeneratePage() {
               Script
             </label>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setScriptMode("ai")}
-                className="px-4 py-1.5 text-[13px] font-medium transition-colors"
-                style={{
-                  backgroundColor:
-                    scriptMode === "ai" ? "#4f46e5" : "transparent",
-                  border:
-                    scriptMode === "ai" ? "none" : "1px solid #1e1e2e",
-                  borderRadius: "9999px",
-                  color: scriptMode === "ai" ? "#ffffff" : "#71717a",
-                }}
-              >
-                AI writes it
-              </button>
-              <button
-                type="button"
-                onClick={() => setScriptMode("custom")}
-                className="px-4 py-1.5 text-[13px] font-medium transition-colors"
-                style={{
-                  backgroundColor:
-                    scriptMode === "custom" ? "#4f46e5" : "transparent",
-                  border:
-                    scriptMode === "custom" ? "none" : "1px solid #1e1e2e",
-                  borderRadius: "9999px",
-                  color: scriptMode === "custom" ? "#ffffff" : "#71717a",
-                }}
-              >
-                I'll write my own
-              </button>
+              {(["ai", "custom"] as ScriptMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setScriptMode(mode)}
+                  className="px-4 py-1.5 text-[13px] font-medium transition-colors"
+                  style={{
+                    backgroundColor:
+                      scriptMode === mode ? "#4f46e5" : "transparent",
+                    border:
+                      scriptMode === mode ? "none" : "1px solid #1e1e2e",
+                    borderRadius: "9999px",
+                    color: scriptMode === mode ? "#ffffff" : "#71717a",
+                  }}
+                >
+                  {mode === "ai" ? "AI writes it" : "I'll write my own"}
+                </button>
+              ))}
             </div>
-
-            {/* Custom Script Textarea */}
             <div
               className="overflow-hidden transition-all duration-300 ease-in-out"
               style={{
@@ -211,7 +240,7 @@ export default function GeneratePage() {
               <textarea
                 value={customScript}
                 onChange={(e) => setCustomScript(e.target.value)}
-                placeholder="Write your demo script here. Describe what your product does and its key features..."
+                placeholder="Write your demo script here..."
                 className="h-[120px] w-full resize-none p-4 text-sm outline-none transition-colors"
                 style={{
                   backgroundColor: "#09090b",
@@ -225,7 +254,6 @@ export default function GeneratePage() {
             </div>
           </div>
 
-          {/* Duration */}
           <div>
             <label
               className="mb-2 block text-[13px] font-medium"
@@ -241,7 +269,8 @@ export default function GeneratePage() {
                   onClick={() => setDuration(d)}
                   className="px-4 py-1.5 text-[13px] font-medium transition-colors"
                   style={{
-                    backgroundColor: duration === d ? "#4f46e5" : "transparent",
+                    backgroundColor:
+                      duration === d ? "#4f46e5" : "transparent",
                     border: duration === d ? "none" : "1px solid #1e1e2e",
                     borderRadius: "9999px",
                     color: duration === d ? "#ffffff" : "#71717a",
@@ -259,7 +288,6 @@ export default function GeneratePage() {
             </div>
           </div>
 
-          {/* Voice */}
           <div>
             <label
               className="mb-2 block text-[13px] font-medium"
@@ -275,7 +303,8 @@ export default function GeneratePage() {
                   onClick={() => setVoiceOption(v)}
                   className="px-4 py-1.5 text-[13px] font-medium capitalize transition-colors"
                   style={{
-                    backgroundColor: voiceOption === v ? "#4f46e5" : "transparent",
+                    backgroundColor:
+                      voiceOption === v ? "#4f46e5" : "transparent",
                     border: voiceOption === v ? "none" : "1px solid #1e1e2e",
                     borderRadius: "9999px",
                     color: voiceOption === v ? "#ffffff" : "#71717a",
@@ -287,7 +316,6 @@ export default function GeneratePage() {
             </div>
           </div>
 
-          {/* Screenshots Upload */}
           <div>
             <label
               className="mb-2 block text-[13px] font-medium"
@@ -298,8 +326,7 @@ export default function GeneratePage() {
             <p className="mb-2 text-xs" style={{ color: "#71717a" }}>
               Upload screenshots of your app. They'll appear in your video.
             </p>
-
-            {screenshots.length < 5 && (
+            {screenshots.length < 10 && (
               <label
                 className="flex cursor-pointer flex-col items-center justify-center p-6"
                 style={{
@@ -326,7 +353,7 @@ export default function GeneratePage() {
                   Drop screenshots here or click to browse
                 </span>
                 <span className="mt-1 text-xs" style={{ color: "#71717a" }}>
-                  PNG or JPG, up to 5 files
+                  PNG or JPG, up to 10 files
                 </span>
                 <input
                   type="file"
@@ -335,7 +362,7 @@ export default function GeneratePage() {
                   className="hidden"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || []);
-                    const remaining = 5 - screenshots.length;
+                    const remaining = 10 - screenshots.length;
                     const newFiles = files.slice(0, remaining);
                     setScreenshots((prev) => [...prev, ...newFiles]);
                     e.target.value = "";
@@ -343,7 +370,6 @@ export default function GeneratePage() {
                 />
               </label>
             )}
-
             {screenshots.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {screenshots.map((file, index) => (
@@ -380,7 +406,6 @@ export default function GeneratePage() {
             )}
           </div>
 
-          {/* Background Template */}
           <div>
             <label
               className="mb-2 block text-[13px] font-medium"
@@ -421,7 +446,6 @@ export default function GeneratePage() {
             </div>
           </div>
 
-          {/* Generate Button */}
           <button
             type="submit"
             disabled={isLoading}
@@ -432,14 +456,12 @@ export default function GeneratePage() {
               color: "#ffffff",
             }}
             onMouseEnter={(e) => {
-              if (!isLoading) {
+              if (!isLoading)
                 e.currentTarget.style.backgroundColor = "#4338ca";
-              }
             }}
             onMouseLeave={(e) => {
-              if (!isLoading) {
+              if (!isLoading)
                 e.currentTarget.style.backgroundColor = "#4f46e5";
-              }
             }}
           >
             {isLoading ? (
@@ -464,7 +486,7 @@ export default function GeneratePage() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Generating your video...
+                {loadingMessage || "Generating your video..."}
               </>
             ) : (
               "Generate my demo video"
