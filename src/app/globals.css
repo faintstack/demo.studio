@@ -128,3 +128,8 @@
     @apply font-sans;
   }
 }
+
+#__next-build-watcher,
+nextjs-portal {
+  display: none !important;
+}

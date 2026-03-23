@@ -53,6 +53,7 @@ export default function GeneratePage() {
   const [customScript, setCustomScript] = useState("");
   const [duration, setDuration] = useState<Duration>("1min");
   const [voiceOption, setVoiceOption] = useState<VoiceOption>("female");
+  const [screenshots, setScreenshots] = useState<File[]>([]);
   const [selectedBackground, setSelectedBackground] =
     useState<Background>("midnight");
   const [isLoading, setIsLoading] = useState(false);
@@ -284,6 +285,99 @@ export default function GeneratePage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Screenshots Upload */}
+          <div>
+            <label
+              className="mb-2 block text-[13px] font-medium"
+              style={{ color: "#71717a" }}
+            >
+              Screenshots
+            </label>
+            <p className="mb-2 text-xs" style={{ color: "#71717a" }}>
+              Upload screenshots of your app. They'll appear in your video.
+            </p>
+
+            {screenshots.length < 5 && (
+              <label
+                className="flex cursor-pointer flex-col items-center justify-center p-6"
+                style={{
+                  backgroundColor: "#09090b",
+                  border: "1px dashed #1e1e2e",
+                  borderRadius: "8px",
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#71717a"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span className="mt-2 text-sm" style={{ color: "#71717a" }}>
+                  Drop screenshots here or click to browse
+                </span>
+                <span className="mt-1 text-xs" style={{ color: "#71717a" }}>
+                  PNG or JPG, up to 5 files
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    const remaining = 5 - screenshots.length;
+                    const newFiles = files.slice(0, remaining);
+                    setScreenshots((prev) => [...prev, ...newFiles]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            )}
+
+            {screenshots.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {screenshots.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Screenshot ${index + 1}`}
+                      className="object-cover"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "4px",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setScreenshots((prev) =>
+                          prev.filter((_, i) => i !== index)
+                        )
+                      }
+                      className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center text-xs"
+                      style={{
+                        backgroundColor: "#1e1e2e",
+                        borderRadius: "9999px",
+                        color: "#fafafa",
+                      }}
+                    >
+                      x
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Background Template */}

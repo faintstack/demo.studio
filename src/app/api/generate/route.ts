@@ -1,9 +1,18 @@
+export const runtime = "nodejs"
+export const maxDuration = 300
+
 import { NextRequest, NextResponse } from "next/server"
 import { Octokit } from "octokit"
 import Groq from "groq-sdk"
+import ffmpeg from "fluent-ffmpeg"
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg"
+import path from "path"
+import fs from "fs"
+import os from "os"
 
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN })
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+ffmpeg.setFfmpegPath(ffmpegInstaller.path)
 
 function parseGithubUrl(url: string) {
   const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/)
@@ -89,7 +98,7 @@ export async function POST(req: NextRequest) {
       packageJson = "No package.json found"
     }
 
-    // Step 4: Generate script with Claude
+    // Step 4: Generate script with Groq
     const durationSeconds = durationMap[duration] || 60
 
     let scriptPrompt = ""
@@ -162,8 +171,6 @@ Rules:
     })
     const rawScript = completion.choices[0].message.content || ""
 
-
-    // Parse JSON from groq response
     const jsonMatch = rawScript.match(/\[[\s\S]*\]/)
     if (!jsonMatch) {
       return NextResponse.json(
@@ -202,31 +209,91 @@ Rules:
       }
     )
 
-  if (!elevenResponse.ok) {
-    const err = await elevenResponse.text()
-    console.error("ElevenLabs error:", err)
-    return NextResponse.json(
-      { error: "Failed to generate voiceover" },
-      { status: 500 }
-    )
-  }
-
-  const audioBuffer = await elevenResponse.arrayBuffer()
-  const audioBase64 = Buffer.from(audioBuffer).toString("base64")
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      owner,
-      repo,
-      slides,
-      background,
-      duration: durationSeconds,
-      audioBase64
+    if (!elevenResponse.ok) {
+      const err = await elevenResponse.text()
+      console.error("ElevenLabs error:", err)
+      return NextResponse.json(
+        { error: "Failed to generate voiceover" },
+        { status: 500 }
+      )
     }
-  })
 
-    
+    const audioBuffer = await elevenResponse.arrayBuffer()
+
+    // Step 6: Assemble video with FFmpeg
+    const timestamp = Date.now()
+    const tempDir = os.tmpdir()
+    const audioPath = path.join(tempDir, `audio-${timestamp}.mp3`)
+    const outputPath = path.join(tempDir, `video-${timestamp}.mp4`)
+
+    fs.writeFileSync(audioPath, Buffer.from(audioBuffer))
+
+    const screenshotPaths = [
+      path.join(process.cwd(), "public/screenshots/s1.png"),
+      path.join(process.cwd(), "public/screenshots/s2.png"),
+      path.join(process.cwd(), "public/screenshots/s3.png"),
+      path.join(process.cwd(), "public/screenshots/s4.png"),
+    ]
+
+    const bgColors: Record<string, string> = {
+      midnight: "0f0c29",
+      aurora: "0f2027",
+      ember: "1a0000",
+      forest: "000000",
+      slate: "1c1c2e",
+      void: "000000"
+    }
+
+    const bgColor = bgColors[background] || "0f0c29"
+
+    await new Promise<void>((resolve, reject) => {
+      const cmd = ffmpeg()
+
+      screenshotPaths.forEach((p) => {
+        cmd.input(p)
+      })
+
+      cmd.input(audioPath)
+
+      cmd
+        .complexFilter([
+          ...screenshotPaths.map((_, i) =>
+            `[${i}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=#${bgColor},setsar=1[v${i}]`
+          ),
+          `${screenshotPaths.map((_, i) => `[v${i}]`).join("")}concat=n=${screenshotPaths.length}:v=1:a=0[outv]`
+        ])
+        .outputOptions([
+          "-map [outv]",
+          `-map ${screenshotPaths.length}:a`,
+          "-c:v libx264",
+          "-c:a aac",
+          "-shortest",
+          "-pix_fmt yuv420p",
+          "-r 30"
+        ])
+        .output(outputPath)
+        .on("end", () => resolve())
+        .on("error", (err) => reject(err))
+        .run()
+    })
+
+    const videoBuffer = fs.readFileSync(outputPath)
+    const videoBase64 = videoBuffer.toString("base64")
+
+    fs.unlinkSync(audioPath)
+    fs.unlinkSync(outputPath)
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        owner,
+        repo,
+        slides,
+        background,
+        duration: durationSeconds,
+        videoBase64
+      }
+    })
 
   } catch (error) {
     console.error("Generate error:", error)
