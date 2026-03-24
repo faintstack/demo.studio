@@ -236,12 +236,16 @@ STRICT RULES:
 
     fs.writeFileSync(audioPath, Buffer.from(audioBuffer))
 
-    const screenshotPaths = [
-      path.join(process.cwd(), "public/screenshots/s1.png"),
-      path.join(process.cwd(), "public/screenshots/s2.png"),
-      path.join(process.cwd(), "public/screenshots/s3.png"),
-      path.join(process.cwd(), "public/screenshots/s4.png"),
-    ]
+    // Use all available fallback screenshots
+    const screenshotDir = path.join(process.cwd(), "public/screenshots")
+    const screenshotFiles = fs.readdirSync(screenshotDir)
+      .filter(f => f.match(/\.(png|jpg|jpeg)$/i))
+      .sort()
+      .map(f => path.join(screenshotDir, f))
+
+    const screenshotPaths = screenshotFiles.length > 0
+      ? screenshotFiles
+      : [path.join(process.cwd(), "public/screenshots/s1.png")]
 
     // Use background image from public/backgrounds/ if it exists, else fall back to solid color
     const bgImagePath = path.join(process.cwd(), `public/backgrounds/${background}.png`)
