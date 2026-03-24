@@ -30,6 +30,9 @@ const durationMap: Record<string, number> = {
   "3 min": 180
 }
 
+// How many words per second a narrator speaks
+const WORDS_PER_SECOND = 2.5
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -66,14 +69,10 @@ export async function POST(req: NextRequest) {
 
     let readme = ""
     try {
-      const readmeResponse = await octokit.rest.repos.getReadme({
-        owner,
-        repo
-      })
-      readme = Buffer.from(
-        readmeResponse.data.content,
-        "base64"
-      ).toString("utf-8").slice(0, 3000)
+      const readmeResponse = await octokit.rest.repos.getReadme({ owner, repo })
+      readme = Buffer.from(readmeResponse.data.content, "base64")
+        .toString("utf-8")
+        .slice(0, 3000)
     } catch {
       readme = "No README found"
     }
@@ -86,16 +85,18 @@ export async function POST(req: NextRequest) {
         path: "package.json"
       })
       if ("content" in pkgResponse.data) {
-        packageJson = Buffer.from(
-          pkgResponse.data.content,
-          "base64"
-        ).toString("utf-8").slice(0, 1000)
+        packageJson = Buffer.from(pkgResponse.data.content, "base64")
+          .toString("utf-8")
+          .slice(0, 1000)
       }
     } catch {
       packageJson = "No package.json found"
     }
 
     const durationSeconds = durationMap[duration] || 60
+    // Calculate target word count so ElevenLabs audio fills the full duration
+    const targetWords = Math.floor(durationSeconds * WORDS_PER_SECOND)
+    const numSlides = 5
 
     let scriptPrompt = ""
 
@@ -118,9 +119,10 @@ Return ONLY a JSON array, no other text:
 ]
 
 Rules:
-- Split into 4-5 slides
+- Split into ${numSlides} slides
 - Total duration must equal ${durationSeconds} seconds
-- Keep the user's exact words
+- Total narration across all slides must be approximately ${targetWords} words
+- Keep the user's exact words, expand if needed to fill time
 - Short sentences only — this is spoken word
 `
     } else {
@@ -143,32 +145,36 @@ Return ONLY a JSON array, no other text:
 [
   {
     "slide": 1,
-    "narration": "narration text",
-    "duration": 8
+    "narration": "narration text here",
+    "duration": ${Math.floor(durationSeconds / numSlides)}
   }
 ]
 
 STRICT RULES:
-- ${durationSeconds} seconds total, exactly 4-5 slides
-- Short sentences. Spoken word only. No long paragraphs.
-- Be specific about what THIS product does based on the code
+- Exactly ${numSlides} slides
+- Each slide duration must sum to exactly ${durationSeconds} seconds total
+- CRITICAL: Each narration must be long enough to fill its duration when spoken aloud
+  at a natural pace. At 2.5 words per second, a ${Math.floor(durationSeconds / numSlides)}-second slide needs
+  ~${Math.floor((durationSeconds / numSlides) * WORDS_PER_SECOND)} words of narration. DO NOT write short sentences for long slides.
+- Total word count across ALL slides must be approximately ${targetWords} words
+- Write in full, flowing sentences. Not bullet points.
 - Sound natural when read aloud — like a friend explaining it
+- NEVER name any technology, library, API, or framework — not even once
+- NEVER say: Next.js, React, Groq, ElevenLabs, Anthropic, FFmpeg, Octokit, or any tech name
 - NEVER say: game-changer, stunning, drive sales, sign up,
   visit our website, real results, seamlessly, leveraging,
   cutting-edge, robust, revolutionize, empower
 - NEVER mention features that don't exist in the codebase
-- NEVER add calls to action for things that don't exist
-- Slide 1: one sentence stating the problem this solves
-- Slides 2-4: specifically how it works, step by step
-- Slide 5: one honest, simple closing line
-- Total narration should take exactly ${durationSeconds} seconds to read aloud
+- Slide 1: ONLY the problem — what pain does a developer feel before this tool? (2-3 sentences, no solution yet)
+- Slides 2-4: what the USER EXPERIENCES step by step — paste URL, what happens, what comes out (3-4 sentences each)
+- Slide 5: honest, simple closing — who this is for and what it saves them (2-3 sentences)
 `
     }
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: scriptPrompt }],
-      max_tokens: 1024
+      max_tokens: 2048
     })
     const rawScript = completion.choices[0].message.content || ""
 
@@ -185,7 +191,8 @@ STRICT RULES:
     const fullNarration = slides
       .map((s: { narration: string }) => s.narration)
       .join(" ")
-
+      .slice(0, 4900)
+            
     const voiceId = voice === "female"
       ? process.env.ELEVENLABS_VOICE_FEMALE!
       : process.env.ELEVENLABS_VOICE_MALE!
@@ -200,7 +207,7 @@ STRICT RULES:
         },
         body: JSON.stringify({
           text: fullNarration,
-          model_id: "eleven_turbo_v2_5",
+          model_id: "eleven_multilingual_v2",
           voice_settings: {
             stability: 0.75,
             similarity_boost: 0.75,
@@ -213,9 +220,9 @@ STRICT RULES:
 
     if (!elevenResponse.ok) {
       const err = await elevenResponse.text()
-      console.error("ElevenLabs error:", err)
+      console.error("ElevenLabs error:", elevenResponse.status, elevenResponse.statusText, err)
       return NextResponse.json(
-        { error: "Failed to generate voiceover" },
+        { error: `Failed to generate voiceover: ${elevenResponse.status} ${err}` },
         { status: 500 }
       )
     }
@@ -236,20 +243,29 @@ STRICT RULES:
       path.join(process.cwd(), "public/screenshots/s4.png"),
     ]
 
-    const bgColors: Record<string, string> = {
-      midnight: "0f0c29",
-      aurora: "0f2027",
-      ember: "1a0000",
-      forest: "000000",
-      slate: "1c1c2e",
-      void: "000000"
-    }
+    // Use background image from public/backgrounds/ if it exists, else fall back to solid color
+    const bgImagePath = path.join(process.cwd(), `public/backgrounds/${background}.png`)
+    const hasBgImage = fs.existsSync(bgImagePath)
 
+    const bgColors: Record<string, string> = {
+      midnight: "1a0533",
+      aurora:   "032830",
+      ember:    "3d0a00",
+      forest:   "032810",
+      slate:    "0d0d2e",
+      void:     "0a0014"
+    }
     const bgColor = bgColors[background] || "0f0c29"
-    const durationPerSlide = Math.floor(durationSeconds / screenshotPaths.length)
+    const durationPerSlide = durationSeconds / screenshotPaths.length
 
     await new Promise<void>((resolve, reject) => {
       const cmd = ffmpeg()
+
+      if (hasBgImage) {
+        // Input background image once, loop it for full duration
+        cmd.input(bgImagePath)
+        cmd.inputOptions(["-loop 1", `-t ${durationSeconds}`])
+      }
 
       screenshotPaths.forEach((p) => {
         cmd.input(p)
@@ -258,16 +274,53 @@ STRICT RULES:
 
       cmd.input(audioPath)
 
-      cmd
-        .complexFilter([
-          ...screenshotPaths.map((_, i) =>
-            `[${i}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=#${bgColor},setsar=1,fps=30[v${i}]`
-          ),
+      const audioIndex = hasBgImage
+        ? screenshotPaths.length + 1
+        : screenshotPaths.length
+
+      const screenshotStartIndex = hasBgImage ? 1 : 0
+
+      let filterComplex: string[]
+
+      if (hasBgImage) {
+        // Scale background to 1280x720
+        // Scale each screenshot to fit within 1100x620 (with padding around it)
+        // Overlay each screenshot centered on background, one per time segment
+        const bgScale = `[0:v]scale=1280:720,setsar=1,fps=30[bg]`
+
+        const screenshotScales = screenshotPaths.map((_, i) => {
+          const idx = i + screenshotStartIndex
+          const start = i * durationPerSlide
+          const end = start + durationPerSlide
+          return `[${idx}:v]scale=1100:620:force_original_aspect_ratio=decrease,pad=1100:620:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1,fps=30,trim=0:${durationPerSlide},setpts=PTS-STARTPTS[ss${i}]`
+        })
+
+        // Build overlay chain: overlay each screenshot onto bg at its time offset
+        // We use enable='between(t,start,end)' to show each screenshot at the right time
+        const overlays = screenshotPaths.map((_, i) => {
+          const start = i * durationPerSlide
+          const end = start + durationPerSlide
+          const inLabel = i === 0 ? "[bg]" : `[ov${i - 1}]`
+          const outLabel = i === screenshotPaths.length - 1 ? "[outv]" : `[ov${i}]`
+          return `${inLabel}[ss${i}]overlay=(W-w)/2:(H-h)/2:enable='between(t,${start},${end})'${outLabel}`
+        })
+
+        filterComplex = [bgScale, ...screenshotScales, ...overlays]
+      } else {
+        filterComplex = [
+          ...screenshotPaths.map((_, i) => {
+            const idx = i + screenshotStartIndex
+            return `[${idx}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=#${bgColor},setsar=1,fps=30[v${i}]`
+          }),
           `${screenshotPaths.map((_, i) => `[v${i}]`).join("")}concat=n=${screenshotPaths.length}:v=1:a=0[outv]`
-        ])
+        ]
+      }
+
+      cmd
+        .complexFilter(filterComplex)
         .outputOptions([
           "-map [outv]",
-          `-map ${screenshotPaths.length}:a`,
+          `-map ${audioIndex}:a`,
           "-c:v libx264",
           "-c:a aac",
           "-shortest",

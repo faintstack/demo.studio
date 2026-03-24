@@ -19,32 +19,32 @@ const backgrounds: { id: Background; name: string; gradient: string }[] = [
   {
     id: "midnight",
     name: "Midnight",
-    gradient: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+    gradient: "linear-gradient(135deg, #9333ea 0%, #4f46e5 40%, #0f0c29 100%)",
   },
   {
     id: "aurora",
     name: "Aurora",
-    gradient: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+    gradient: "linear-gradient(135deg, #06b6d4 0%, #3b82f6 40%, #8b5cf6 100%)",
   },
   {
     id: "ember",
     name: "Ember",
-    gradient: "linear-gradient(135deg, #1a0000, #3d0000, #7f0000)",
+    gradient: "linear-gradient(135deg, #f97316 0%, #ef4444 40%, #ec4899 100%)",
   },
   {
     id: "forest",
     name: "Forest",
-    gradient: "linear-gradient(135deg, #000000, #0f3443, #1a4a2e)",
+    gradient: "linear-gradient(135deg, #10b981 0%, #059669 40%, #065f46 100%)",
   },
   {
     id: "slate",
     name: "Slate",
-    gradient: "linear-gradient(135deg, #1c1c2e, #2d2d44, #1a1a2e)",
+    gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 100%)",
   },
   {
     id: "void",
     name: "Void",
-    gradient: "linear-gradient(135deg, #000000, #0a0a0a, #111111)",
+    gradient: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f0c29 100%)",
   },
 ];
 
@@ -135,7 +135,7 @@ export default function GeneratePage() {
         style={{ borderBottom: "1px solid #1e1e2e" }}
       >
         <span className="text-lg font-bold" style={{ color: "#fafafa" }}>
-          Demofy
+          demo.studio
         </span>
         <Link
           href="/"
@@ -413,7 +413,7 @@ export default function GeneratePage() {
             >
               Background
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               {backgrounds.map((bg) => (
                 <button
                   key={bg.id}
@@ -429,15 +429,20 @@ export default function GeneratePage() {
                       background: bg.gradient,
                       border:
                         selectedBackground === bg.id
-                          ? "2px solid #4f46e5"
-                          : bg.id === "void"
-                            ? "1px solid #27272a"
-                            : "1px solid #1e1e2e",
+                          ? "2px solid #ffffff"
+                          : "1px solid transparent",
+                      boxShadow:
+                        selectedBackground === bg.id
+                          ? "0 0 12px rgba(255,255,255,0.2)"
+                          : "none",
                     }}
                   />
                   <span
                     className="mt-1 text-xs"
-                    style={{ color: "#71717a" }}
+                    style={{
+                      color:
+                        selectedBackground === bg.id ? "#fafafa" : "#71717a",
+                    }}
                   >
                     {bg.name}
                   </span>

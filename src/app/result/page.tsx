@@ -17,20 +17,6 @@ interface ResultData {
   background: string
 }
 
-// Mock data for demonstration
-const mockData: ResultData = {
-  videoUrl: "",
-  slides: [
-    { slide: 1, narration: "Welcome to Demofy, the easiest way to create stunning demo videos for your product.", duration: 5 },
-    { slide: 2, narration: "Simply paste your GitHub repo URL and we'll analyze your codebase automatically.", duration: 4 },
-    { slide: 3, narration: "Our AI generates a compelling script that highlights your product's key features.", duration: 5 },
-    { slide: 4, narration: "Choose from multiple professional voices and background music options.", duration: 4 },
-    { slide: 5, narration: "Download your video and share it on Product Hunt, Twitter, or in your pitch deck.", duration: 5 },
-  ],
-  repo: "github.com/example/demofy",
-  background: "gradient"
-}
-
 export default function ResultPage() {
   const [data, setData] = useState<ResultData | null>(null)
 
@@ -44,10 +30,9 @@ export default function ResultPage() {
 
   const handleDownload = () => {
     if (!data?.videoUrl) return
-    
     const link = document.createElement("a")
     link.href = data.videoUrl
-    link.download = "demofy-output.mp4"
+    link.download = "demo-studio-output.mp4"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -59,10 +44,10 @@ export default function ResultPage() {
       <header className="h-16 border-b border-[#1e1e2e]">
         <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6">
           <span className="text-lg font-bold tracking-tight text-[#fafafa]">
-            Demofy
+            demo.studio
           </span>
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-sm text-[#71717a] transition-colors hover:text-[#fafafa]"
           >
             Generate another
@@ -71,62 +56,96 @@ export default function ResultPage() {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-[800px] px-8 py-12">
+      <main className="mx-auto max-w-[860px] px-8 py-12">
         {/* Success Badge */}
         <div className="mb-6">
           <span className="inline-block rounded-full bg-[#0d2b1d] px-3 py-1 text-xs font-medium text-[#4ade80]">
-            Video ready
+            ✓ Video ready
           </span>
         </div>
 
-        {/* Heading */}
         <h1 className="mb-2 text-[32px] font-semibold leading-tight text-[#fafafa]">
           Your demo video is ready
         </h1>
-
-        {/* Subheading */}
-        <p className="mb-8 text-base text-[#71717a]">
+        <p className="mb-10 text-base text-[#71717a]">
           Share it on Product Hunt, Twitter, or your pitch deck.
         </p>
 
-        {/* Video Player Card */}
-        <div className="overflow-hidden rounded-xl border border-[#1e1e2e] bg-[#111117]">
-          {/* Top Bar */}
-          <div className="flex h-10 items-center justify-between border-b border-[#1e1e2e] px-4">
-            <div className="flex gap-1.5">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#71717a]/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-[#71717a]/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-[#71717a]/50" />
-            </div>
-            <span className="text-xs text-[#71717a]">demofy-output.mp4</span>
-            <div className="w-[42px]" /> {/* Spacer for centering */}
-          </div>
-          
-          {/* Video Element */}
-          {data?.videoUrl ? (
-            <video 
-              className="w-full" 
-              controls 
-              autoPlay
-              src={data.videoUrl}
-            />
-          ) : (
-            <div className="flex aspect-video items-center justify-center bg-[#09090b]">
-              <div className="text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#1e1e2e]">
-                  <svg className="h-6 w-6 text-[#71717a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm text-[#71717a]">Video preview</p>
+        {/* Terminal-style video card */}
+        <div
+          className="overflow-hidden rounded-2xl border border-[#1e1e2e]"
+          style={{
+            background: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
+            boxShadow: "0 0 80px rgba(99,102,241,0.15), 0 25px 50px rgba(0,0,0,0.5)",
+          }}
+        >
+          {/* Gradient backdrop */}
+          <div className="p-6 pb-8">
+            {/* Window chrome */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex gap-2">
+                <span className="h-3 w-3 rounded-full bg-[#ef4444]" />
+                <span className="h-3 w-3 rounded-full bg-[#eab308]" />
+                <span className="h-3 w-3 rounded-full bg-[#22c55e]" />
               </div>
+              <span className="flex items-center gap-2 text-xs text-[#ffffff60]">
+                <span className="animate-pulse text-[#ef4444]">●</span>
+                demo-studio-output.mp4
+              </span>
+              <div className="w-14" />
             </div>
-          )}
+
+            {/* Video element — floats on gradient bg */}
+            <div
+              className="overflow-hidden rounded-xl border border-[#ffffff15]"
+              style={{
+                boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)",
+              }}
+            >
+              {data?.videoUrl ? (
+                <video
+                  className="w-full block"
+                  controls
+                  autoPlay
+                  src={data.videoUrl}
+                  style={{ display: "block" }}
+                />
+              ) : (
+                <div className="flex aspect-video items-center justify-center bg-[#09090b]/80">
+                  <div className="text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#6366f1]/20 border border-[#6366f1]/30">
+                      <svg className="h-6 w-6 text-[#6366f1]" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-[#71717a]">Video preview</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={handleDownload}
+            disabled={!data?.videoUrl}
+            className="flex h-11 items-center gap-2 rounded-lg bg-[#4f46e5] px-6 text-sm font-medium text-white transition-colors hover:bg-[#4338ca] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" />
+            Download MP4
+          </button>
+          <Link
+            href="/"
+            className="flex h-11 items-center rounded-lg border border-[#1e1e2e] bg-transparent px-6 text-sm font-medium text-[#fafafa] transition-colors hover:bg-[#1e1e2e]"
+          >
+            Generate another
+          </Link>
         </div>
 
         {/* Script Section */}
-        <div className="mt-8">
+        <div className="mt-10">
           <label className="mb-3 block text-[13px] font-medium text-[#71717a]">
             Generated script
           </label>
@@ -153,24 +172,6 @@ export default function ResultPage() {
               <p className="text-sm text-[#71717a]">No script available</p>
             )}
           </div>
-        </div>
-
-        {/* Buttons Row */}
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={handleDownload}
-            disabled={!data?.videoUrl}
-            className="flex h-11 items-center gap-2 rounded-lg bg-[#4f46e5] px-6 text-sm font-medium text-white transition-colors hover:bg-[#4338ca] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Download className="h-4 w-4" />
-            Download MP4
-          </button>
-          <Link
-            href="/"
-            className="flex h-11 items-center rounded-lg border border-[#1e1e2e] bg-transparent px-6 text-sm font-medium text-[#fafafa] transition-colors hover:bg-[#1e1e2e]"
-          >
-            Generate another
-          </Link>
         </div>
       </main>
     </div>
