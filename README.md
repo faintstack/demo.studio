@@ -2,7 +2,7 @@
 
 Turn your GitHub repo into a demo video in under 2 minutes.
 
-![Project Landing Page](./images/landing-page.png)
+![Project Landing Page](./images/landing-pg.png)
 
 Paste a URL. AI reads your code, writes the script, 
 records the voiceover, and renders a polished MP4 — 
