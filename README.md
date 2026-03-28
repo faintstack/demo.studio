@@ -2,6 +2,8 @@
 
 Turn your GitHub repo into a demo video in under 2 minutes.
 
+![Project Landing Page](./images/landing-page.png)
+
 Paste a URL. AI reads your code, writes the script, 
 records the voiceover, and renders a polished MP4 — 
 ready for Product Hunt, Twitter, or your pitch deck.
@@ -30,17 +32,15 @@ You give it a GitHub URL. It gives you back a video.
 5. **Video is rendered** — your screenshots, voice, 
    and background are assembled into an MP4
 
----
+## Tech Stack
 
-## Built with
-
-- **Next.js 14** — frontend and API routes
-- **v0.dev** — entire UI generated with v0
-- **Groq** (Llama 3.3 70B) — script generation
-- **ElevenLabs** — AI voiceover
-- **FFmpeg** — video assembly
-- **GitHub API** — repo analysis
-- **Vercel** — deployment
+- **Next.js 14** - frontend and API routes
+- **v0.dev** - entire UI generated with v0
+- **Groq** (Llama 3.3 70B) - script generation
+- **ElevenLabs** - AI voiceover
+- **FFmpeg** - video assembly
+- **GitHub API** - repo analysis
+- **Vercel** - deployment
 
 ---
 
