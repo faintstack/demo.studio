@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# demo.studio
 
-## Getting Started
+Turn your GitHub repo into a demo video in under 2 minutes.
 
-First, run the development server:
+Paste a URL. AI reads your code, writes the script, 
+records the voiceover, and renders a polished MP4 — 
+ready for Product Hunt, Twitter, or your pitch deck.
 
+[Live Demo](https://demo-studio-mu.vercel.app/)
+
+---
+
+## The problem
+Most developers ship without a demo video. Recording, 
+scripting, editing, voiceover, it honestly takes hours most 
+people don't have time. So, they write a README and hope 
+someone reads it.
+
+## What demo.studio does
+You give it a GitHub URL. It gives you back a video.
+
+## How it works
+1. **Paste your repo URL** — any public GitHub repo works
+2. **AI reads your code** — analyzes the file structure, 
+   README, and dependencies to understand what you built
+3. **Script is written** — a natural, conversational 
+   narration is generated automatically
+4. **Voice is recorded** — ElevenLabs turns the script 
+   into a professional voiceover
+5. **Video is rendered** — your screenshots, voice, 
+   and background are assembled into an MP4
+
+---
+
+## Built with
+
+- **Next.js 14** — frontend and API routes
+- **v0.dev** — entire UI generated with v0
+- **Groq** (Llama 3.3 70B) — script generation
+- **ElevenLabs** — AI voiceover
+- **FFmpeg** — video assembly
+- **GitHub API** — repo analysis
+- **Vercel** — deployment
+
+---
+
+## Running locally
+
+Clone the repo:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/faintstack/Demofy
+cd Demofy
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env.local` file:
+```env
+GITHUB_TOKEN=your_github_token
+GROQ_API_KEY=your_groq_key
+ELEVENLABS_API_KEY=your_elevenlabs_key
+ELEVENLABS_VOICE_FEMALE=your_female_voice_id
+ELEVENLABS_VOICE_MALE=your_male_voice_id
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Run the dev server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [localhost:3000](http://localhost:3000).
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Getting API keys
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Service | Free tier | Link |
+|---|---|---|
+| GitHub Token | Yes | github.com/settings/tokens |
+| Groq | Yes | console.groq.com |
+| ElevenLabs | Yes (limited) | elevenlabs.io |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## What's next
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Live app URL → auto screenshots via Puppeteer
+- More voice styles and accents
+- Animated backgrounds
+- Chrome extension — "Generate demo" button on 
+  every GitHub repo page
+- API access for CI/CD pipelines
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
