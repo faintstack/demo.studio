@@ -1,72 +1,165 @@
 # demo.studio
 
-Turn your GitHub repo into a demo video in under 2 minutes.
+Turn any GitHub repository into a polished demo video in minutes without recording, editing, or writing a script yourself.
 
-![Project Landing Page](./images/landing-pg.png)
+![Project Landing Page](./images/landing-page.png)
 
-Paste a URL. AI reads your code, writes the script, 
-records the voiceover, and renders a polished MP4 — 
-ready for Product Hunt, Twitter, or your pitch deck.
+Most developers never create demo videos for their projects not because demo videos don't matter, but because making them takes too much time.
+
+demo.studio automates the entire process:
+
+- reads your repository
+- understands what your project does
+- writes a narration script
+- generates a realistic voiceover
+- renders a ready-to-share MP4
+
+Perfect for launches, hackathons, portfolios, investor demos, and social posts.
+
+Paste a GitHub URL → get a demo video back.
 
 [Live Demo](https://demo-studio-mu.vercel.app/)
 
 ---
 
-## The problem
-Most developers ship without a demo video. Recording, 
-scripting, editing, voiceover, it honestly takes hours most 
-people don't have time. So, they write a README and hope 
-someone reads it.
+## Why This Exists
 
-## What demo.studio does
-You give it a GitHub URL. It gives you back a video.
+A strong project with a weak presentation usually gets ignored.
+
+Most repos look like this:
+- decent code
+- decent README
+- zero demonstration
+
+And that's a problem because people rarely install random repos just to understand them.
+
+Video communicates faster than documentation:
+
+users instantly understand the product
+recruiters see execution
+judges understand hackathon projects faster
+Product Hunt visitors actually stop scrolling
+
+But making a good demo video normally requires:
+
+- scripting
+- screen recording
+- editing
+- voiceover work
+- rendering
+way too much time
+
+So most developers skip it entirely.
+
+demo.studio exists to remove that bottleneck.
+---
+
+## What demo.studio Actually Does
+
+You give it a public GitHub repository.
+
+It:
+
+- analyzes the codebase
+- understands the project structure
+- generates a human-style narration script
+- creates an AI voiceover
+- assembles visuals + audio into a video
+- exports a shareable MP4
+
+No editing. No voice recording. No timeline tweaking.
+---
+
+## Features That Actually Matter
+1. Repo-Aware Script Generation
+
+The AI doesn't generate generic filler.
+
+It reads:
+- your README
+- dependencies
+- project structure
+- key files
+
+Then creates a narration that explains what your project actually does.
+
+2. Automatic Voiceover
+
+Uses ElevenLabs to generate realistic narration automatically.
+- No microphone needed.
+- No awkward self-recording.
+- No audio cleanup.
+
+3. One-Click Video Rendering
+
+The app assembles:
+
+- narration
+- screenshots/assets
+- motion backgrounds
+- timing
+- transitions
+
+into a ready-to-share MP4.
+
+Useful for:
+- Product Hunt launches
+- Twitter/X posts
+- portfolio showcases
+- startup demos
+- hackathon submissions
+- Fast Enough to Actually Use
+
+Most demo workflows take hours.
+This takes minutes.
+
+That changes behavior completely. Developers are far more likely to create demos when the cost drops close to zero.
+---
 
 ## How it works
-1. **Paste your repo URL** — any public GitHub repo works
-2. **AI reads your code** — analyzes the file structure, 
+1. **Paste your repo URL** - any public GitHub repo works
+2. **AI reads your code** - analyzes the file structure, 
    README, and dependencies to understand what you built
-3. **Script is written** — a natural, conversational 
+3. **Script is written** - a natural, conversational 
    narration is generated automatically
-4. **Voice is recorded** — ElevenLabs turns the script 
+4. **Voice is recorded** - ElevenLabs turns the script 
    into a professional voiceover
-5. **Video is rendered** — your screenshots, voice, 
+5. **Video is rendered** - your screenshots, voice, 
    and background are assembled into an MP4
 
 ## Tech Stack
-
-- **Next.js 14** - frontend and API routes
-- **v0.dev** - entire UI generated with v0
-- **Groq** (Llama 3.3 70B) - script generation
-- **ElevenLabs** - AI voiceover
-- **FFmpeg** - video assembly
-- **GitHub API** - repo analysis
-- **Vercel** - deployment
+| Technology                                                      | Purpose               |
+| --------------------------------------------------------------- | --------------------- |
+| Next.js                                                         | Frontend + API routes |
+| [v0.dev](https://v0.dev?utm_source=chatgpt.com)                 | UI generation         |
+| [Groq](https://groq.com?utm_source=chatgpt.com) + Llama 3.3 70B | Script generation     |
+| [ElevenLabs](https://elevenlabs.io?utm_source=chatgpt.com)      | Voice synthesis       |
+| FFmpeg                                                          | Video rendering       |
+| GitHub API                                                      | Repository analysis   |
+| [Vercel](https://vercel.com?utm_source=chatgpt.com)             | Deployment            |
 
 ---
 
 ## Running locally
 
-Clone the repo:
-```bash
+1. Clone the Repository
 git clone https://github.com/faintstack/Demofy
 cd Demofy
-npm install
-```
 
-Create a `.env.local` file:
-```env
+2. Install Dependencies
+npm install
+
+3. Configure Environment Variables
+Create a .env.local file:
+
 GITHUB_TOKEN=your_github_token
 GROQ_API_KEY=your_groq_key
 ELEVENLABS_API_KEY=your_elevenlabs_key
 ELEVENLABS_VOICE_FEMALE=your_female_voice_id
 ELEVENLABS_VOICE_MALE=your_male_voice_id
-```
 
-Run the dev server:
-```bash
+4. Start the Development Server
 npm run dev
-```
-
 Open [localhost:3000](http://localhost:3000).
 
 ---
@@ -81,13 +174,42 @@ Open [localhost:3000](http://localhost:3000).
 
 ---
 
+## Real World Use Cases
+1. Hackathons
+- Most hackathon projects loose during presentation round.
+
+- Teams build an interesting technical project but fails to present it well.
+
+- A clean auto generated demo instantly improves:
+clarity
+presentation quality
+perceived polish
+
+2. Indie Hackers & Launches
+- Shipping consistently matters more than perfection.
+
+- If creating demo videos becomes frictionless, developers are far more likely to market what they build.
+
+3. Portfolio Projects
+Recruiters and clients rarely clone repos.
+But they will definately watch a 45 second demo.
+
+4. Open Source Maintainers
+Good demos help contributors quickly understand:
+
+- what the project does
+- why it matters
+- how it works
+
+That lowers onboarding friction significantly.
+---
+
 ## What's next
 
-- Live app URL → auto screenshots via Puppeteer
+- Fully autonomous demo generation from a deployed app URL, the agent navigates the product itself, understands flows, captures scenes dynamically, and generates the video automatically
 - More voice styles and accents
-- Animated backgrounds
-- Chrome extension — "Generate demo" button on 
-  every GitHub repo page
+- Animated visual themes
+- GitHub Chrome extension: "Generate Demo” directly from any repo page 
 - API access for CI/CD pipelines
-
+- Better scene generation from frontend structure
 ---
