@@ -52,6 +52,7 @@ way too much time
 So most developers skip it entirely.
 
 demo.studio exists to remove that bottleneck.
+
 ---
 
 ## What demo.studio Actually Does
@@ -68,9 +69,11 @@ It:
 - exports a shareable MP4
 
 No editing. No voice recording. No timeline tweaking.
+
 ---
 
 ## Features That Actually Matter
+
 1. Repo-Aware Script Generation
 
 The AI doesn't generate generic filler.
@@ -114,9 +117,11 @@ Most demo workflows take hours.
 This takes minutes.
 
 That changes behavior completely. Developers are far more likely to create demos when the cost drops close to zero.
+
 ---
 
 ## How it works
+
 1. **Paste your repo URL** - any public GitHub repo works
 2. **AI reads your code** - analyzes the file structure, 
    README, and dependencies to understand what you built
@@ -128,6 +133,7 @@ That changes behavior completely. Developers are far more likely to create demos
    and background are assembled into an MP4
 
 ## Tech Stack
+
 | Technology                                                      | Purpose               |
 | --------------------------------------------------------------- | --------------------- |
 | Next.js                                                         | Frontend + API routes |
@@ -202,6 +208,7 @@ Good demos help contributors quickly understand:
 - how it works
 
 That lowers onboarding friction significantly.
+
 ---
 
 ## What's next
@@ -212,4 +219,5 @@ That lowers onboarding friction significantly.
 - GitHub Chrome extension: "Generate Demo” directly from any repo page 
 - API access for CI/CD pipelines
 - Better scene generation from frontend structure
+
 ---
