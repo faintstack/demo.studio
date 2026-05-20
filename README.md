@@ -72,7 +72,7 @@ No editing. No voice recording. No timeline tweaking.
 
 ---
 
-## Features That Actually Matter
+## Features
 
 1. Repo-Aware Script Generation
 
@@ -149,13 +149,17 @@ That changes behavior completely. Developers are far more likely to create demos
 ## Running locally
 
 1. Clone the Repository
+
 git clone https://github.com/faintstack/Demofy
+
 cd Demofy
 
 2. Install Dependencies
+
 npm install
 
 3. Configure Environment Variables
+
 Create a .env.local file:
 
 GITHUB_TOKEN=your_github_token
@@ -165,7 +169,9 @@ ELEVENLABS_VOICE_FEMALE=your_female_voice_id
 ELEVENLABS_VOICE_MALE=your_male_voice_id
 
 4. Start the Development Server
+
 npm run dev
+
 Open [localhost:3000](http://localhost:3000).
 
 ---
@@ -197,8 +203,8 @@ perceived polish
 - If creating demo videos becomes frictionless, developers are far more likely to market what they build.
 
 3. Portfolio Projects
-Recruiters and clients rarely clone repos.
-But they will definately watch a 45 second demo.
+- Recruiters and clients rarely clone repos.
+- But they will definately watch a 45 second demo.
 
 4. Open Source Maintainers
 Good demos help contributors quickly understand:
@@ -207,7 +213,7 @@ Good demos help contributors quickly understand:
 - why it matters
 - how it works
 
-That lowers onboarding friction significantly.
+That makes the project easier to understand and contribute to.
 
 ---
 
