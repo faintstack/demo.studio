@@ -18,8 +18,6 @@ Perfect for launches, hackathons, portfolios, investor demos, and social posts.
 
 Paste a GitHub URL → get a demo video back.
 
-[Live Demo](https://demo-studio-mu.vercel.app/)
-
 ---
 
 ## Why This Exists
